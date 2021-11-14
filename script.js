@@ -44,33 +44,29 @@ class JokesModel {
         return saved ? JSON.parse(saved) : [];
     }
 
-    async loadJokes(count) {
+    loadJokes(count) {
         let arr = [];
-        try {
-            for(let i=0; i<count; i++) {
-                let joke = await this.loadJoke();
-                arr.push(joke);
-            }
+        return this.loadJoke(arr, count).then(arr => {
             this.saveJokes(arr);
             return arr;
-        } catch(err) {
-            return err;
-        }
+        });
     }
 
-    async loadJoke() {
-        let result = await fetch(this.url);
-        let json = await result.json();
-        console.log(json);
-        return json.setup ? (json.setup + " / " + json.delivery) : json.joke;
+    loadJoke(arr, count) {
+        return fetch(this.url)
+                .then(result => result.json())
+                .then(json => json.setup ? (json.setup + " / " + json.delivery) : json.joke)
+                .then(joke => arr.push(joke))
+                .then(length => length < count ? this.loadJoke(arr, count) : arr);
     }
 }
 
 class JokesController {
-    constructor(view, model) {
+    constructor(view, model, countOfJokes) {
         this.view = view;
         this.model = model;
         this.refreshData = this.refreshData.bind(this);
+        this.countOfJokes = countOfJokes;
     }
 
     hendle() {
@@ -80,17 +76,16 @@ class JokesController {
 
     refreshData() {
         this.view.showLoader();
-        this.model.loadJokes(10)
-                .then(result => result instanceof Error ? 
-                    this.view.showError(result.message) : 
-                    this.view.showJokes(result));
+        this.model.loadJokes(this.countOfJokes)
+                .then(arr => this.view.showJokes(arr))
+                .catch(err => this.view.showError(err.message));
     }
 }
 
 $(function() {
     const jokesView = new JokesView();
     const jokesModel = new JokesModel();
-    const jokesController = new JokesController(jokesView, jokesModel);
+    const jokesController = new JokesController(jokesView, jokesModel, 10);
 
     jokesController.hendle();
 });
