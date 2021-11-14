@@ -45,19 +45,29 @@ class JokesModel {
     }
 
     loadJokes(count) {
-        let arr = [];
-        return this.loadJoke(arr, count).then(arr => {
+        return this.loadJoke([], count).then(arr => {
             this.saveJokes(arr);
             return arr;
         });
     }
 
     loadJoke(arr, count) {
-        return fetch(this.url)
-                .then(result => result.json())
-                .then(json => json.setup ? (json.setup + " / " + json.delivery) : json.joke)
-                .then(joke => arr.push(joke))
-                .then(length => length < count ? this.loadJoke(arr, count) : arr);
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open('GET', this.url);
+            xhr.responseType = 'json';
+            xhr.onload = () => {
+                if(xhr.status == 200) {
+                    resolve(xhr.response)
+                } else {
+                    reject(xhr.response)
+                }
+            }
+            xhr.send();
+        })
+        .then(json => json.setup ? (json.setup + " / " + json.delivery) : json.joke)
+        .then(joke => arr.push(joke))
+        .then(length => length < count ? this.loadJoke(arr, count) : arr);
     }
 }
 
