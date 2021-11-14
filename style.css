@@ -1,0 +1,14 @@
+button#refresh {
+    font-size: 30px;
+    background-color: yellowgreen;
+}
+
+img#loader {
+    display: block;
+}
+
+div#err {
+    margin-top: 25px;
+    color: red;
+    font-size: 30px;
+}
