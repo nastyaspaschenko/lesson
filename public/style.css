@@ -1,4 +1,4 @@
-button#refresh {
+button:not(.remove) {
     font-size: 30px;
     background-color: yellowgreen;
 }
